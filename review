@@ -12,11 +12,9 @@
 
 set -euo pipefail
 
-# OPENAI_API_KEY="${OPENAI_API_KEY:-}"
+OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o-mini}"
 MAX_DIFF_LINES="${MAX_DIFF_LINES:-2000}"
-
-OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 log()  { echo -e "${BLUE}[review]${NC} $*"; }

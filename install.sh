@@ -5,7 +5,7 @@ set -e
 #  review — installer
 # ─────────────────────────────────────────────
 
-REVIEW_URL="https://raw.githubusercontent.com/williampereira/review/main/review"
+REVIEW_URL="https://gitlab.com/-/snippets/5965695/raw/main/review"
 INSTALL_DIR="$HOME/.local/bin"
 INSTALL_PATH="$INSTALL_DIR/review"
 
