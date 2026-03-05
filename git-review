@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# review.sh — Code Review via OpenAI API (gpt-4o-mini)
-# Uso: ./review.sh [branch-base]
+# git-review — Code Review via OpenAI API
+# Uso: git-review [branch-base]
 #      Se omitido, detecta automaticamente main ou master.
 #
 # Configuração:
@@ -12,9 +12,34 @@
 
 set -euo pipefail
 
+VERSION="1.0.0"
+
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o-mini}"
 MAX_DIFF_LINES="${MAX_DIFF_LINES:-2000}"
+
+RED='\\033[0;31m'; GREEN='\\033[0;32m'; YELLOW='\\033[1;33m'; BLUE='\\033[0;34m'; NC='\\033[0m'
+
+# Handle flags before any other logic
+case "${1:-}" in
+  --version|-v)
+    echo "git-review v${VERSION}"
+    exit 0
+    ;;
+  --help|-h)
+    echo "Uso: git-review [branch-base]"
+    echo ""
+    echo "Opções:"
+    echo "  --version, -v    Exibe a versão instalada"
+    echo "  --help,    -h    Exibe esta ajuda"
+    echo ""
+    echo "Variáveis de ambiente:"
+    echo "  OPENAI_API_KEY   (obrigatório) Chave da API OpenAI"
+    echo "  OPENAI_MODEL     (padrão: gpt-4o-mini) Modelo a utilizar"
+    echo "  MAX_DIFF_LINES   (padrão: 2000) Limite de linhas do diff"
+    exit 0
+    ;;
+esac
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 log()  { echo -e "${BLUE}[review]${NC} $*"; }
@@ -46,21 +71,33 @@ done
 # Detecta branch base
 # --------------------------------------------------------------------------- #
 detect_base_branch() {
-  if [[ $# -gt 0 ]]; then echo "$1"; return; fi
+  # Argumento explícito tem prioridade
+  if [[ $# -gt 0 && -n "${1:-}" ]]; then
+    echo "$1"
+    return 0
+  fi
+
+  # Tenta main e master tanto no remote quanto local
   for candidate in main master; do
     if git show-ref --verify --quiet "refs/remotes/origin/${candidate}" 2>/dev/null; then
-      echo "$candidate"; return
+      echo "$candidate"
+      return 0
     fi
     if git show-ref --verify --quiet "refs/heads/${candidate}" 2>/dev/null; then
-      echo "$candidate"; return
+      echo "$candidate"
+      return 0
     fi
   done
-  err "Não foi possível detectar a branch base (main/master)."
-  err "Passe a branch manualmente: ./review.sh <branch-base>"
-  exit 1
+
+  return 1
 }
 
-BASE_BRANCH=$(detect_base_branch "${1:-}")
+# Captura o resultado fora do subshell para preservar exit code
+if ! BASE_BRANCH=$(detect_base_branch "${1:-}") || [[ -z "$BASE_BRANCH" ]]; then
+  err "Não foi possível detectar a branch base (main/master)."
+  err "Passe a branch manualmente: review <branch-base>"
+  exit 1
+fi
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$CURRENT_BRANCH" == "$BASE_BRANCH" ]]; then

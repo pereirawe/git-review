@@ -2,12 +2,11 @@
 set -e
 
 # ─────────────────────────────────────────────
-#  review — installer
+#  git-review — installer
 # ─────────────────────────────────────────────
 
-REVIEW_URL="https://gitlab.com/-/snippets/5965695/raw/main/review"
+BASE_URL="https://gitlab.com/-/snippets/5965695/raw/main"
 INSTALL_DIR="$HOME/.local/bin"
-INSTALL_PATH="$INSTALL_DIR/review"
 
 # ── helpers ───────────────────────────────────
 
@@ -39,9 +38,21 @@ install_deps() {
   fi
 }
 
+# ── download helper ───────────────────────────
+
+download() {
+  local name="$1"
+  local dest="$INSTALL_DIR/$name"
+  info "Baixando $name..."
+  curl -fsSL "$BASE_URL/$name" -o "$dest" \
+    || error "Falha ao baixar $name. Verifique: $BASE_URL/$name"
+  chmod +x "$dest"
+  success "$name instalado em $dest"
+}
+
 # ── main ──────────────────────────────────────
 
-info "Iniciando instalação do review..."
+info "Iniciando instalação do git-review..."
 
 # 1. Instalar dependências
 install_deps
@@ -50,17 +61,12 @@ success "Dependências instaladas: curl, jq, bc"
 # 2. Garantir que o diretório de destino existe
 mkdir -p "$INSTALL_DIR"
 
-# 3. Fazer download do binário/script
-info "Baixando review de $REVIEW_URL..."
-curl -fsSL "$REVIEW_URL" -o "$INSTALL_PATH" \
-  || error "Falha ao fazer download. Verifique a URL: $REVIEW_URL"
-success "Download concluído"
+# 3. Baixar os scripts
+download "git-review"
+download "git-review-update"
+download "git-review-uninstall"
 
-# 4. Dar permissão de execução
-chmod +x "$INSTALL_PATH"
-success "Permissões configuradas (chmod +x)"
-
-# 5. Verificar PATH
+# 4. Verificar PATH
 case ":$PATH:" in
   *":$INSTALL_DIR:"*)
     # já está no PATH
@@ -71,7 +77,7 @@ case ":$PATH:" in
     if [ -f "$HOME/.bashrc" ];  then SHELL_RC="$HOME/.bashrc"; fi
     if [ -f "$HOME/.zshrc" ];   then SHELL_RC="$HOME/.zshrc";  fi
     if [ -n "$SHELL_RC" ]; then
-      printf '\n# review — adicionado pelo instalador\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$SHELL_RC"
+      printf '\n# git-review — adicionado pelo instalador\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$SHELL_RC"
       info "Adicionado ao $SHELL_RC. Rode: source $SHELL_RC"
     else
       info "Adicione manualmente ao seu shell rc: export PATH=\"\$HOME/.local/bin:\$PATH\""
@@ -81,5 +87,8 @@ esac
 
 # ── feito ─────────────────────────────────────
 echo ""
-success "review instalado em $INSTALL_PATH"
-info    "Execute: review --help"
+success "git-review instalado com sucesso!"
+info    "Comandos disponíveis:"
+info    "  git-review              → executa a revisão de código"
+info    "  git-review-update       → atualiza para a versão mais recente"
+info    "  git-review-uninstall    → remove a instalação"
