@@ -7,6 +7,7 @@ set -e
 # ─────────────────────────────────────────────────────────────────────────────
 
 BASE_URL="https://gitlab.com/-/snippets/5965695/raw/main"
+NOCACHE="$(date +%s)"
 INSTALL_DIR="$HOME/.local/bin"
 MAIN_SCRIPT="$INSTALL_DIR/git-review"
 
@@ -48,7 +49,7 @@ install_script() {
   local tmp
   tmp=$(mktemp /tmp/"$name".XXXXXX)
   trap 'rm -f "$tmp"' EXIT
-  curl -fsSL "$BASE_URL/$name" -o "$tmp" \
+  curl -fsSL "$BASE_URL/$name?$NOCACHE" -o "$tmp" \
     || error "Falha ao baixar $name."
   rm -f "$dest"
   cp "$tmp" "$dest"
@@ -61,8 +62,7 @@ info "Verificando atualização do git-review..."
 
 # 1. Verificar se está instalado
 if [ ! -f "$MAIN_SCRIPT" ]; then
-  error "git-review não encontrado em $MAIN_SCRIPT. Execute o instalador primeiro:
-  curl -fsSL $BASE_URL/install.sh | sh"
+  error "git-review não encontrado em $MAIN_SCRIPT. Execute o instalador: curl -fsSL '$BASE_URL/install.sh' | sh"
 fi
 
 # 2. Versão instalada localmente
@@ -77,8 +77,8 @@ info "Versão instalada: v${LOCAL_VERSION}"
 TMP_MAIN=$(mktemp /tmp/git-review.XXXXXX)
 trap 'rm -f "$TMP_MAIN"' EXIT
 
-info "Consultando versão remota..."
-curl -fsSL "$BASE_URL/git-review" -o "$TMP_MAIN" \
+info "Consultando versão remota (sem cache)..."
+curl -fsSL "$BASE_URL/git-review?$NOCACHE" -o "$TMP_MAIN" \
   || error "Falha ao conectar. Verifique sua conexão."
 
 # 4. Versão remota
