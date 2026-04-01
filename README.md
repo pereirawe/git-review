@@ -16,7 +16,7 @@ O modelo analisa as mudanças e devolve:
 | Dependência | Descrição                       |
 | ----------- | ------------------------------- |
 | `git`       | Repositório Git inicializado    |
-| `curl`      | Para chamadas à API e downloads |
+| `curl`      | Para chamadas à API             |
 | `jq`        | Para processar JSON             |
 | `bc`        | Para calcular o custo estimado  |
 
@@ -25,10 +25,60 @@ O modelo analisa as mudanças e devolve:
 ## Instalação
 
 ```sh
-curl -fsSL "https://raw.githubusercontent.com/pereirawe/git-review/refs/heads/main/install.sh?$(date +%s)" | sh
+curl -fsSL "https://raw.githubusercontent.com/pereirawe/git-review/refs/heads/main/install.sh" | sh
 ```
 
-O script instala dependências, baixa os comandos em `~/.local/bin`, define permissão executável e atualiza o `PATH` se necessário.
+O instalador faz um `git clone` do repositório em `~/.local/share/git-review/`, cria um symlink em `~/.local/bin/git-review` e atualiza o `PATH` se necessário.
+
+### Estrutura instalada
+
+```
+~/.local/
+├── bin/
+│   └── git-review          ← symlink para o script principal
+└── share/
+    └── git-review/         ← repositório clonado (clone do GitHub)
+        ├── git-review
+        ├── git-review-update
+        ├── git-review-uninstall
+        ├── install.sh
+        ├── system_prompt.txt
+        ├── git-review.conf         ← sua config (ignorada pelo git)
+        ├── git-review.conf.example ← modelo de configuração
+        ├── DESCRIPTION.md
+        └── README.md
+```
+
+## Configuração
+
+Copie o arquivo de exemplo e edite com suas chaves:
+
+```sh
+cp ~/.local/share/git-review/git-review.conf.example \
+   ~/.local/share/git-review/git-review.conf
+
+# edite com seu editor preferido:
+nano ~/.local/share/git-review/git-review.conf
+```
+
+Ou exporte variáveis de ambiente no seu shell:
+
+```sh
+export API_PROVIDER=openai
+export OPENAI_API_KEY="sk-..."
+```
+
+### Variáveis de ambiente
+
+| Variável           | Padrão       | Descrição                              |
+| ------------------ | ------------ | -------------------------------------- |
+| `API_PROVIDER`     | `openai`     | Provedor de IA: `openai`, `gemini`, `claude` |
+| `OPENAI_MODEL`     | `gpt-4.1`    | Modelo OpenAI                          |
+| `GEMINI_MODEL`     | `gemini-1.5` | Modelo Gemini                          |
+| `CLAUDE_MODEL`     | `claude-3.1` | Modelo Claude                          |
+| `MAX_DIFF_LINES`   | `2000`       | Limite de linhas do diff               |
+| `DESCRIPTION_FILE` | `DESCRIPTION.md` | Arquivo de descrição do projeto    |
+| `GIT_REVIEW_CONFIG`| (automático) | Caminho alternativo para o config      |
 
 ## Uso
 
@@ -51,7 +101,7 @@ git-review --help
 ```text
 [review] Branch base:  main
 [review] Branch atual: feat/minha-feature
-[review] Modelo:       gpt-4o-mini
+[review] Modelo:       gpt-4.1
 [review] Gerando diff a partir do merge-base...
 [review] Diff gerado: 142 linhas
 [review] Enviando para a API de IA...
@@ -68,37 +118,13 @@ git-review --help
 [review] Revisão concluída.
 ```
 
-## Configuração
-
-Edite `~/.git-review/config` ou defina variáveis de ambiente:
-
-```sh
-export API_PROVIDER=openai
-export OPENAI_API_KEY="sk-..."
-# ou para Gemini
-export GEMINI_API_KEY="..."
-# ou para Claude
-export CLAUDE_API_KEY="..."
-```
-
-### Variáveis de ambiente opcionais
-
-| Variável           | Padrão           | Descrição                        |
-| ------------------ | ---------------- | -------------------------------- | ------ | ------ |
-| `API_PROVIDER`     | `openai`         | Provedor de IA: openai           | gemini | claude |
-| `OPENAI_MODEL`     | `gpt-4.1`        | Modelo OpenAI                    |
-| `GEMINI_MODEL`     | `gemini-1.5`     | Modelo Gemini                    |
-| `CLAUDE_MODEL`     | `claude-3.1`     | Modelo Claude                    |
-| `MAX_DIFF_LINES`   | `2000`           | Limite de linhas do diff         |
-| `DESCRIPTION_FILE` | `DESCRIPTION.md` | Arquivo de descrição versionável |
-
 ## Atualização
 
 ```sh
 git-review-update
 ```
 
-Atualiza os scripts localmente apenas se houver versão mais recente.
+Faz `git pull` no repositório instalado e exibe as versões anterior e atual.
 
 ## Desinstalação
 
@@ -106,26 +132,12 @@ Atualiza os scripts localmente apenas se houver versão mais recente.
 git-review-uninstall
 ```
 
-Remove instalações de `~/.local/bin`.
+Remove `~/.local/share/git-review/` e o symlink em `~/.local/bin/git-review`.
 
 ## Versionamento
 
-Usa Semantic Versioning (`MAJOR.MINOR.PATCH`).
-
-## Estrutura do projeto
-
-```
-review/
-├── git-review
-├── git-review-update
-├── git-review-uninstall
-├── install.sh
-├── system_prompt.txt
-├── git-review.conf.example
-├── DESCRIPTION.md
-└── README.md
-```
+Usa Git tags no formato `vMAJOR.MINOR.PATCH` (Semantic Versioning).
 
 ## Licença
 
-MIT © [williampereira](https://gitlab.com/williampereira)
+MIT © [pereirawe](https://github.com/pereirawe)

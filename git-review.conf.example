@@ -1,22 +1,26 @@
 # git-review configuration
-# Copie para ~/.git-review/config ou defina GIT_REVIEW_CONFIG e SYSTEM_PROMPT_FILE manualmente.
+# Copie este arquivo para git-review.conf na mesma pasta:
+#   cp git-review.conf.example git-review.conf
+#
+# O arquivo git-review.conf é ignorado pelo git (está no .gitignore)
+# e fica em ~/.local/share/git-review/git-review.conf
 
-API_PROVIDER=openai  # openai|gemini|claude
+API_PROVIDER=openai  # openai | gemini | claude
 
 # OpenAI
 OPENAI_API_KEY="YOUR_OPENAI_KEY"
 OPENAI_MODEL="gpt-4.1"
 
-# Gemini (exemplo)
+# Gemini
 GEMINI_API_KEY="YOUR_GEMINI_KEY"
 GEMINI_MODEL="gemini-1.5"
 
-# Claude (exemplo Anthropic)
+# Claude (Anthropic)
 CLAUDE_API_KEY="YOUR_CLAUDE_KEY"
 CLAUDE_MODEL="claude-3.1"
 
 # Geral
 MAX_DIFF_LINES=2000
 
-# Opcional, local do prompt (por default, system_prompt.txt ao lado do script)
-# SYSTEM_PROMPT_FILE="$HOME/.git-review/system_prompt.txt"
+# Opcional: caminho personalizado para o system prompt
+# SYSTEM_PROMPT_FILE="$HOME/.local/share/git-review/system_prompt.txt"
