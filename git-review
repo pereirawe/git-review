@@ -3,11 +3,6 @@
 # git-review — Code Review via OpenAI API
 # Uso: git-review [branch-base]
 #      Se omitido, detecta automaticamente main ou master.
-#
-# Configuração:
-#   export OPENAI_API_KEY="sk-..."      # obrigatório
-#   export OPENAI_MODEL="gpt-4o-mini"  # opcional
-#   export MAX_DIFF_LINES=2000          # opcional
 # =============================================================================
 
 set -euo pipefail
@@ -254,12 +249,30 @@ case "$API_PROVIDER" in
       --arg prompt "$PROMPT" \
       '{model: $model, prompt: $prompt, temperature: 0}')
 
-    RESPONSE=$(curl -s "https://gemini.googleapis.com/v1/models/${GEMINI_MODEL}:generateText" \
+    RESPONSE=$(curl -sS "https://gemini.googleapis.com/v1/models/${GEMINI_MODEL}:generateText" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer ${GEMINI_API_KEY}" \
-      -d "$PAYLOAD")
+      -d "$PAYLOAD" 2>&1)
 
-    OUTPUT=$(echo "$RESPONSE" | jq -r '.candidates[0].output // .output_text // empty')
+    if ! echo "$RESPONSE" | jq -e . >/dev/null 2>&1; then
+      err "Erro: resposta inválida do Gemini (não JSON)."
+      err "Respostas brutas: $RESPONSE"
+      exit 1
+    fi
+
+    OUTPUT=$(echo "$RESPONSE" | jq -r '.candidates[0].output // .candidates[0].content // .output_text // .text // empty')
+
+    if [[ -z "$OUTPUT" ]]; then
+      ERR_DETAIL=$(echo "$RESPONSE" | jq -r '.error.message // .error // empty')
+      if [[ -n "$ERR_DETAIL" ]]; then
+        err "Gemini retornou erro: $ERR_DETAIL"
+      else
+        err "Gemini retornou JSON válido, mas não foi possível extrair o texto de saída."
+        err "Resposta completa: $RESPONSE"
+      fi
+      exit 1
+    fi
+
     TOKENS_IN=0
     TOKENS_OUT=0
     TOTAL=0
