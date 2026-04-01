@@ -1,22 +1,22 @@
 #!/bin/bash
 set -e
 
-# ─────────────────────────────────────────────
-#  git-review — installer
-# ─────────────────────────────────────────────
+# ---------------------------------------------
+#  git-review installer
+# ---------------------------------------------
 
 REPO_URL="https://github.com/pereirawe/git-review.git"
 INSTALL_DIR="$HOME/.local/share/git-review"
 BIN_DIR="$HOME/.local/bin"
 BIN_LINK="$BIN_DIR/git-review"
 
-# ── helpers ───────────────────────────────────
+# -- helpers -----------------------------------
 
 info()    { printf '\033[1;34m[INFO]\033[0m  %s\n' "$*"; }
 success() { printf '\033[1;32m[OK]\033[0m    %s\n' "$*"; }
 error()   { printf '\033[1;31m[ERROR]\033[0m %s\n' "$*" >&2; exit 1; }
 
-# ── detect package manager ────────────────────
+# -- detect package manager --------------------
 
 install_deps() {
   if command -v apt-get > /dev/null 2>&1; then
@@ -46,7 +46,7 @@ install_deps() {
   fi
 }
 
-# ── main ──────────────────────────────────────
+# -- main --------------------------------------
 
 info "Iniciando instalação do git-review..."
 
