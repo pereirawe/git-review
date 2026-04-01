@@ -22,19 +22,25 @@ install_deps() {
   if command -v apt-get > /dev/null 2>&1; then
     info "Instalando dependências via apt..."
     sudo apt-get update -qq
-    sudo apt-get install -y curl jq bc
+    sudo apt-get install -y curl jq bc gh
+    # Instalar glab
+    curl -s https://gitlab.com/gitlab-org/cli/-/raw/main/scripts/install.sh | sh
   elif command -v dnf > /dev/null 2>&1; then
     info "Instalando dependências via dnf..."
     sudo dnf install -y curl jq bc
+    # gh e glab podem precisar de repos adicionais
+    info "Instale gh e glab manualmente se necessário."
   elif command -v yum > /dev/null 2>&1; then
     info "Instalando dependências via yum..."
     sudo yum install -y curl jq bc
+    info "Instale gh e glab manualmente se necessário."
   elif command -v brew > /dev/null 2>&1; then
     info "Instalando dependências via brew..."
-    brew install curl jq bc
+    brew install curl jq bc gh glab
   elif command -v apk > /dev/null 2>&1; then
     info "Instalando dependências via apk..."
     sudo apk add --no-cache curl jq bc
+    info "Instale gh e glab manualmente se necessário."
   else
     error "Nenhum gerenciador de pacotes suportado encontrado (apt, dnf, yum, brew, apk)."
   fi
@@ -49,7 +55,7 @@ command -v git > /dev/null 2>&1 || error "git não encontrado. Instale o git ant
 
 # 2. Instalar dependências
 install_deps
-success "Dependências instaladas: curl, jq, bc"
+success "Dependências instaladas: curl, jq, bc, gh, glab"
 
 # 3. Clonar ou atualizar o repositório
 if [ -d "$INSTALL_DIR/.git" ]; then

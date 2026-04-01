@@ -47,6 +47,9 @@ case "${1:-}" in
     echo "  MAX_DIFF_LINES       (padrão: 2000) Limite de linhas do diff"
     echo "  API_PROVIDER         (openai|gemini|claude) Provedor de IA"
     echo "  DESCRIPTION_FILE     (opcional) Caminho para descrição do projeto"
+    echo ""
+    echo "Dependências:"
+    echo "  curl, jq, bc, gh, glab"
     exit 0
     ;;
   --update)
@@ -339,6 +342,61 @@ echo "$OUTPUT"
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════════${NC}"
+
+# --------------------------------------------------------------------------- #
+# Opcional: Enviar comentário para MR/PR
+# --------------------------------------------------------------------------- #
+REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+PLATFORM=""
+if [[ "$REMOTE_URL" =~ github\.com ]]; then
+  PLATFORM="github"
+elif [[ "$REMOTE_URL" =~ gitlab\.com ]]; then
+  PLATFORM="gitlab"
+else
+  log "Plataforma não identificada (GitHub/GitLab). Pulando envio de comentário."
+fi
+
+if [[ -n "$PLATFORM" ]]; then
+  log "Detectado: $PLATFORM"
+  
+  # Verificar se existe MR/PR para a branch atual
+  MR_EXISTS=false
+  if [[ "$PLATFORM" == "github" ]]; then
+    if command -v gh >/dev/null 2>&1 && gh pr list --head "$CURRENT_BRANCH" --json number | jq -e 'length > 0' >/dev/null 2>&1; then
+      MR_EXISTS=true
+    fi
+  elif [[ "$PLATFORM" == "gitlab" ]]; then
+    if command -v glab >/dev/null 2>&1 && glab mr list --source-branch "$CURRENT_BRANCH" --output json | jq -e 'length > 0' >/dev/null 2>&1; then
+      MR_EXISTS=true
+    fi
+  fi
+  
+  if [[ "$MR_EXISTS" == true ]]; then
+    COMMENT_FILE="/tmp/git-review-comment-$(date +%s).txt"
+    COMMENT_BODY="$OUTPUT
+
+---
+Comentário gerado automaticamente usando $API_PROVIDER."
+    echo "$COMMENT_BODY" > "$COMMENT_FILE"
+    log "Comentário salvo em: $COMMENT_FILE"
+    
+    read -p "Deseja enviar este comentário para a MR/PR? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      if [[ "$PLATFORM" == "github" ]]; then
+        gh pr comment --body "$COMMENT_BODY"
+        log "Comentário enviado para PR no GitHub."
+      elif [[ "$PLATFORM" == "gitlab" ]]; then
+        glab mr note --body "$COMMENT_BODY"
+        log "Comentário enviado para MR no GitLab."
+      fi
+    else
+      log "Comentário não enviado. Arquivo mantido em $COMMENT_FILE."
+    fi
+  else
+    log "Nenhuma MR/PR encontrada para a branch '$CURRENT_BRANCH'."
+  fi
+fi
 
 log "Tokens — entrada: ${TOKENS_IN:-0} | saída: ${TOKENS_OUT:-0} | total: ${TOTAL:-0}"
 if [[ "$API_PROVIDER" == "openai" ]]; then
