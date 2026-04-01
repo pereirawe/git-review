@@ -387,7 +387,7 @@ Comentário gerado automaticamente usando $API_PROVIDER."
         gh pr comment --body "$COMMENT_BODY"
         log "Comentário enviado para PR no GitHub."
       elif [[ "$PLATFORM" == "gitlab" ]]; then
-        glab mr note --body "$COMMENT_BODY"
+        glab mr note "$COMMENT_BODY"
         log "Comentário enviado para MR no GitLab."
       fi
     else
