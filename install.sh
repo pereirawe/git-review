@@ -5,8 +5,10 @@ set -e
 #  git-review — installer
 # ─────────────────────────────────────────────
 
-BASE_URL="https://raw.githubusercontent.com/pereirawe/git-review/refs/heads/main/"
-INSTALL_DIR="$HOME/.local/bin"
+REPO_URL="https://github.com/pereirawe/git-review.git"
+INSTALL_DIR="$HOME/.local/share/git-review"
+BIN_DIR="$HOME/.local/bin"
+BIN_LINK="$BIN_DIR/git-review"
 
 # ── helpers ───────────────────────────────────
 
@@ -38,41 +40,54 @@ install_deps() {
   fi
 }
 
-# ── download helper ───────────────────────────
-
-download() {
-  local name="$1"
-  local dest="$INSTALL_DIR/$name"
-  info "Baixando $name..."
-  curl -fsSL "$BASE_URL/$name" -o "$dest" \
-    || error "Falha ao baixar $name. Verifique: $BASE_URL/$name"
-  chmod +x "$dest"
-  success "$name instalado em $dest"
-}
-
 # ── main ──────────────────────────────────────
 
 info "Iniciando instalação do git-review..."
 
-# 1. Instalar dependências
+# 1. Verificar que git está disponível
+command -v git > /dev/null 2>&1 || error "git não encontrado. Instale o git antes de continuar."
+
+# 2. Instalar dependências
 install_deps
 success "Dependências instaladas: curl, jq, bc"
 
-# 2. Garantir que o diretório de destino existe
-mkdir -p "$INSTALL_DIR"
+# 3. Clonar ou atualizar o repositório
+if [ -d "$INSTALL_DIR/.git" ]; then
+  info "Repositório já existe. Atualizando..."
+  git -C "$INSTALL_DIR" pull --ff-only
+  success "Repositório atualizado."
+else
+  info "Clonando repositório em $INSTALL_DIR..."
+  mkdir -p "$(dirname "$INSTALL_DIR")"
+  git clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
+  success "Repositório clonado."
+fi
 
-# 3. Baixar os scripts
-download "git-review"
-download "git-review-update"
-download "git-review-uninstall"
+# 4. Garantir permissões executáveis
+chmod +x "$INSTALL_DIR/git-review"
+chmod +x "$INSTALL_DIR/git-review-update"
+chmod +x "$INSTALL_DIR/git-review-uninstall"
 
-# 4. Verificar PATH
+# 5. Criar symlink em ~/.local/bin
+mkdir -p "$BIN_DIR"
+ln -sf "$INSTALL_DIR/git-review" "$BIN_LINK"
+success "Symlink criado: $BIN_LINK → $INSTALL_DIR/git-review"
+
+# 6. Copiar arquivo de configuração de exemplo (se ainda não existe)
+CONF_FILE="$INSTALL_DIR/git-review.conf"
+if [ ! -f "$CONF_FILE" ]; then
+  cp "$INSTALL_DIR/git-review.conf.example" "$CONF_FILE"
+  info "Arquivo de configuração criado: $CONF_FILE"
+  info "Edite-o com suas chaves de API antes de usar."
+fi
+
+# 7. Verificar PATH
 case ":$PATH:" in
-  *":$INSTALL_DIR:"*)
+  *":$BIN_DIR:"*)
     # já está no PATH
     ;;
   *)
-    info "Adicionando $INSTALL_DIR ao PATH..."
+    info "Adicionando $BIN_DIR ao PATH..."
     SHELL_RC=""
     if [ -f "$HOME/.bashrc" ];  then SHELL_RC="$HOME/.bashrc"; fi
     if [ -f "$HOME/.zshrc" ];   then SHELL_RC="$HOME/.zshrc";  fi
@@ -88,7 +103,9 @@ esac
 # ── feito ─────────────────────────────────────
 echo ""
 success "git-review instalado com sucesso!"
-info    "Comandos disponíveis:"
-info    "  git-review              → executa a revisão de código"
-info    "  git-review-update       → atualiza para a versão mais recente"
-info    "  git-review-uninstall    → remove a instalação"
+info    "Arquivos em:      $INSTALL_DIR"
+info    "Config em:        $CONF_FILE"
+info    "Comando no PATH:  $BIN_LINK"
+echo ""
+info    "Próximo passo: edite $CONF_FILE com sua chave de API."
+info    "Depois rode:      git-review"
