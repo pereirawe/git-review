@@ -24,7 +24,8 @@ install_deps() {
     sudo apt-get update -qq
     sudo apt-get install -y curl jq bc gh
     # Instalar glab
-    curl -s https://gitlab.com/gitlab-org/cli/-/raw/main/scripts/install.sh | sh
+    # !TODO: verificar se já existe um pacote glab para a distro
+    # curl -s https://gitlab.com/gitlab-org/cli/-/raw/main/scripts/install.sh | sh
   elif command -v dnf > /dev/null 2>&1; then
     info "Instalando dependências via dnf..."
     sudo dnf install -y curl jq bc

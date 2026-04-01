@@ -3,6 +3,7 @@
         "/^sh -n install\\.sh && echo 'OK sh syntax'$/": {
             "approve": true,
             "matchCommandLine": true
-        }
+        },
+        "timeout": true
     }
 }
