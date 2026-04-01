@@ -5,7 +5,7 @@ set -e
 #  git-review — installer
 # ─────────────────────────────────────────────
 
-BASE_URL="https://gitlab.com/-/snippets/5965695/raw/main"
+BASE_URL="https://raw.githubusercontent.com/pereirawe/git-review/refs/heads/main/"
 INSTALL_DIR="$HOME/.local/bin"
 
 # ── helpers ───────────────────────────────────

@@ -25,7 +25,7 @@ O modelo analisa as mudanças e devolve:
 ## Instalação
 
 ```sh
-curl -fsSL "https://gitlab.com/-/snippets/5965695/raw/main/install.sh?$(date +%s)" | sh
+curl -fsSL "https://raw.githubusercontent.com/pereirawe/git-review/refs/heads/main/install.sh?$(date +%s)" | sh
 ```
 
 O script instala dependências, baixa os comandos em `~/.local/bin`, define permissão executável e atualiza o `PATH` se necessário.
