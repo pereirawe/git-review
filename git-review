@@ -366,7 +366,7 @@ if [[ -n "$PLATFORM" ]]; then
       MR_EXISTS=true
     fi
   elif [[ "$PLATFORM" == "gitlab" ]]; then
-    if command -v glab >/dev/null 2>&1 && glab mr list --source-branch "$CURRENT_BRANCH" --output json | jq -e 'length > 0' >/dev/null 2>&1; then
+    if command -v glab >/dev/null 2>&1 && MR_ID=$(glab mr list --source-branch "$CURRENT_BRANCH" 2>/dev/null | grep -oP '^!\K\d+' | head -1) && [[ -n "$MR_ID" ]]; then
       MR_EXISTS=true
     fi
   fi
@@ -387,8 +387,8 @@ Comentário gerado automaticamente usando $API_PROVIDER."
         gh pr comment --body "$COMMENT_BODY"
         log "Comentário enviado para PR no GitHub."
       elif [[ "$PLATFORM" == "gitlab" ]]; then
-        glab mr note "$COMMENT_BODY"
-        log "Comentário enviado para MR no GitLab."
+        glab mr note "$MR_ID" -m "$COMMENT_BODY"
+        log "Comentário enviado para MR $MR_ID no GitLab."
       fi
     else
       log "Comentário não enviado. Arquivo mantido em $COMMENT_FILE."
