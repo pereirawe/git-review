@@ -36,16 +36,34 @@ case "${1:-}" in
     echo "Uso: git-review [branch-base]"
     echo ""
     echo "Opções:"
-    echo "  --version, -v    Exibe a versão instalada"
-    echo "  --help,    -h    Exibe esta ajuda"
+    echo "  --version, -v        Exibe a versão instalada"
+    echo "  --help,    -h        Exibe esta ajuda"
+    echo "  --update             Atualiza os scripts (git-review-update)"
+    echo "  --uninstall          Desinstala scripts (git-review-uninstall)"
     echo ""
     echo "Variáveis de ambiente:"
-    echo "  OPENAI_API_KEY   (obrigatório) Chave da API OpenAI"
-    echo "  OPENAI_MODEL     (padrão: gpt-4o-mini) Modelo a utilizar"
-    echo "  MAX_DIFF_LINES   (padrão: 2000) Limite de linhas do diff"
-    echo "  API_PROVIDER     (openai|gemini|claude) Provedor de IA"
-    echo "  DESCRIPTION_FILE (opcional) Caminho para descrição do projeto"
+    echo "  OPENAI_API_KEY       (obrigatório) Chave da API OpenAI"
+    echo "  OPENAI_MODEL         (padrão: gpt-4o-mini) Modelo a utilizar"
+    echo "  MAX_DIFF_LINES       (padrão: 2000) Limite de linhas do diff"
+    echo "  API_PROVIDER         (openai|gemini|claude) Provedor de IA"
+    echo "  DESCRIPTION_FILE     (opcional) Caminho para descrição do projeto"
     exit 0
+    ;;
+  --update)
+    if command -v git-review-update >/dev/null 2>&1; then
+      exec git-review-update
+    else
+      err "Comando git-review-update não encontrado. Execute install.sh ou verifique PATH."
+      exit 1
+    fi
+    ;;
+  --uninstall)
+    if command -v git-review-uninstall >/dev/null 2>&1; then
+      exec git-review-uninstall
+    else
+      err "Comando git-review-uninstall não encontrado. Execute install.sh ou verifique PATH."
+      exit 1
+    fi
     ;;
 esac
 
