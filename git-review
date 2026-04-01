@@ -52,6 +52,10 @@ case "${1:-}" in
   --update)
     if command -v git-review-update >/dev/null 2>&1; then
       exec git-review-update
+    elif [[ -x "$HOME/.local/share/git-review/git-review-update" ]]; then
+      exec "$HOME/.local/share/git-review/git-review-update"
+    elif [[ -x "$SCRIPT_DIR/git-review-update" ]]; then
+      exec "$SCRIPT_DIR/git-review-update"
     else
       err "Comando git-review-update não encontrado. Execute install.sh ou verifique PATH."
       exit 1
@@ -60,6 +64,10 @@ case "${1:-}" in
   --uninstall)
     if command -v git-review-uninstall >/dev/null 2>&1; then
       exec git-review-uninstall
+    elif [[ -x "$HOME/.local/share/git-review/git-review-uninstall" ]]; then
+      exec "$HOME/.local/share/git-review/git-review-uninstall"
+    elif [[ -x "$SCRIPT_DIR/git-review-uninstall" ]]; then
+      exec "$SCRIPT_DIR/git-review-uninstall"
     else
       err "Comando git-review-uninstall não encontrado. Execute install.sh ou verifique PATH."
       exit 1
